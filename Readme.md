@@ -4,22 +4,13 @@ This is a Task Management Application built with a MERN stack. The front end is 
 
 ---
 
-<p align="center">
-  <b style="color: blue;  ">Visitor count</b>
-  <br>
-  <a style="" href="https://github.com/akashdeep023">
-  <img src="https://profile-counter.glitch.me/task-management/count.svg" />
-  </a>
-</p>
-
 ## 📜 Project Overview
 
 _A task management app, where users can organize their personal and team-based tasks, track progress, and share task updates. Users can manage their task boards with features to create, edit, assign, and delete tasks for themselves and other members._
 
 <p align="center">Register Page</p>
 <a style="" href="https://task-management-org.vercel.app/login">
-     
-![Macbook-Air-localhost (1)](https://github.com/user-attachments/assets/d05bd3e9-e349-469b-a4d2-d828e3e76414)
+
 
 </a>
 <p align="center">Dashboard Page</p>
@@ -43,7 +34,6 @@ _A task management app, where users can organize their personal and team-based t
 -   [Scripts](#scripts)
 -   [Live Demo](#live-demo)
 -   [Author](#author)
--   [License](#license)
 
 ---
 
@@ -201,17 +191,9 @@ Check out the live demo of Task Management here: [Task Management](https://task-
 ## **Author**
 
 Akash Deep \
-Email: contact.akashdeep023@gmail.com \
-LinkedIn: https://www.linkedin.com/in/akashdeep023/
+Email: aniketsharma.ani04@gmail.com \
+LinkedIn: [https://www.linkedin.com/in/akashdeep023](https://www.linkedin.com/in/aniket-sharma-07ba6617b/)/
 
-## **Contributors**
-
-We'd like to acknowledge the efforts and contributions of the following individuals:
-
--   **[Akash Deep](https://github.com/akashdeep023)** - Full Stack development and Project lead.
--   **[Ekant Verma](https://github.com/ekantverma)** - Full Stack development.
--   **[Anjali Kumari](https://github.com/Anjali17aj)** - Full Stack development.
--   **[Shanedra Singh](https://github.com/shanedraSingh/)** - Full Stack development.
 
 ## **License**
 
