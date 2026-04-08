@@ -2,7 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
+
 
 const app = express();
 
@@ -24,14 +24,6 @@ const userRouter = require("./routes/user");
 const taskRoute = require("./routes/task");
 const analyticsRoute = require("./routes/analytics");
 
-// Connect to Database
-main()
-	.then(() => console.log("Database Connection established"))
-	.catch((err) => console.log(err));
-
-async function main() {
-	await mongoose.connect(process.env.MONGODB_URI);
-}
 
 // Root route
 app.get("/", (req, res) => {

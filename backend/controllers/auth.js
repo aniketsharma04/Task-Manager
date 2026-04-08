@@ -1,43 +1,57 @@
-const User = require("../models/user");
-const bcrypt = require("bcryptjs");
-const { generateToken } = require("../config/jwtProvider");
+const { supabase, supabaseAdmin } = require("../config/supabase");
 
 const registerUser = async (req, res, next) => {
 	let { name, email, password } = req.body;
-	const existingUser = await User.findOne({ email: email });
-	if (existingUser) {
-		return res.status(400).json({ message: `User Already Exist` });
-	}
-	password = bcrypt.hashSync(password, 8);
-	const userData = new User({
-		name,
+
+	// Use admin client to create user with auto-confirmed email
+	const { data, error } = await supabaseAdmin.auth.admin.createUser({
 		email,
 		password,
+		email_confirm: true,
+		user_metadata: {
+			name: name
+		}
 	});
-	const user = await userData.save();
-	const jwt = generateToken(user._id);
+
+	if (error) {
+		return res.status(400).json({ message: error.message });
+	}
+
 	res.status(200).json({
 		message: "Registration Successfully",
-		token: jwt,
+		token: "registered",
 	});
 };
 
 const loginUser = async (req, res) => {
 	let { email, password } = req.body;
-	let user = await User.findOne({ email: email });
-	if (!user) {
-		return res.status(404).json({ message: `User Not Found` });
+	
+	const { data, error } = await supabase.auth.signInWithPassword({
+		email,
+		password
+	});
+
+	if (error) {
+		return res.status(401).json({ message: error.message });
 	}
-	const isPasswordValid = bcrypt.compareSync(password, user.password);
-	if (!isPasswordValid) {
-		return res.status(401).json({ message: "Incorrect Password" });
-	}
-	const jwt = generateToken(user._id);
-	user.password = null;
+
+	// Fetch profile to get name and board (use admin client to bypass RLS)
+	const { data: profile } = await supabaseAdmin
+		.from('profiles')
+		.select('*')
+		.eq('id', data.user.id)
+		.single();
+
 	res.status(200).json({
 		message: "Login Successfully",
-		data: user,
-		token: jwt,
+		data: { 
+			_id: data.user.id, 
+			id: data.user.id, 
+			name: profile?.name,
+			email: data.user.email,
+			board: profile?.board || []
+		},
+		token: data.session.access_token,
 	});
 };
 
