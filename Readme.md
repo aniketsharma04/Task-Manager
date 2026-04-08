@@ -1,30 +1,14 @@
-# **Task Management Application**
+# **Pro Manage - Task Management Application**
 
-This is a Task Management Application built with a MERN stack. The front end is developed using React with Vite, and the back-end is built using Express.js with MongoDB for the database.
+A Task Management Application built with React, Express.js, and Supabase. Organize personal and team-based tasks, track progress, and collaborate with others.
 
 ---
 
-## 📜 Project Overview
+## Project Overview
 
-_A task management app, where users can organize their personal and team-based tasks, track progress, and share task updates. Users can manage their task boards with features to create, edit, assign, and delete tasks for themselves and other members._
+_A task management app where users can organize their personal and team-based tasks, track progress, and share task updates. Users can manage their task boards with features to create, edit, assign, and delete tasks for themselves and other members._
 
-<p align="center">Register Page</p>
-<a style="" href="https://task-management-org.vercel.app/login">
-
-
-</a>
-<p align="center">Dashboard Page</p>
-<a style="" href="https://task-management-org.vercel.app/">
-     
-![Macbook-Air-localhost](https://github.com/user-attachments/assets/5643d5a6-b8ad-4516-a3dd-d12b0d9793e3)
-
-</a>
-<p align="center">Public View</p>
-<a style="" href="https://task-management-org.vercel.app/task/67421bb3a90e252d2d4cb42e">
-     
-![Macbook-Air-localhost (2)](https://github.com/user-attachments/assets/cde4fcb3-80c4-410d-9763-50281c9b2233)
-
-</a>
+---
 
 ## **Table of Contents**
 
@@ -32,19 +16,17 @@ _A task management app, where users can organize their personal and team-based t
 -   [Tech Stack](#tech-stack)
 -   [Setup Instructions](#setup-instructions)
 -   [Scripts](#scripts)
--   [Live Demo](#live-demo)
 -   [Author](#author)
 
 ---
 
 ## **Features**
 
--   User authentication using JWT.
--   Secure password handling with bcrypt.js.
+-   User authentication powered by Supabase Auth.
+-   Row Level Security (RLS) for data protection.
 -   State management with Redux Toolkit.
--   User-friendly interface and Only public page Responsive.
--   Toast notifications for feedback.
--   RESTful APIs for seamless communication between frontend and backend.
+-   Toast notifications for user feedback.
+-   RESTful APIs for seamless frontend-backend communication.
 
 ### **Core Functionalities**
 
@@ -55,8 +37,9 @@ _A task management app, where users can organize their personal and team-based t
 
 -   **Task Management:**
 
-    -   Create tasks with properties like priority, optional due dates, categories, and the ability to share tasks with others (read-only public access for shared tasks).
-    -   Update tasks, including title, priority, and due dates.
+    -   Create tasks with priority, optional due dates, checklists, and categories.
+    -   Share tasks with others (read-only public access for shared tasks).
+    -   Update tasks including title, priority, and due dates.
     -   Delete tasks.
     -   Change task statuses across four categories: **Backlog**, **To-Do**, **In-Progress**, and **Done**.
     -   Automatically highlight overdue tasks with red and completed tasks with green.
@@ -64,50 +47,35 @@ _A task management app, where users can organize their personal and team-based t
 -   **User Management:**
 
     -   Users can update their name, email, or password via the settings page.
-    -   Changes to email or password will log users out to ensure security.
 
 -   **Analytics & Filtering:**
 
     -   Review task analytics in a dedicated section.
-    -   Filter tasks by **Today**, **This Week**, or **This Month** (default is the current week).
-
--   **User-Friendly Interface:**
-
-    -   Task titles are truncated on the board for readability, with full titles accessible via tooltips.
-    -   Mandatory fields are marked with a red asterisk (\*).
-    -   Notifications and alerts are provided via toast messages.
+    -   Filter tasks by **Today**, **This Week**, or **This Month**.
 
 -   **Collaboration:**
     -   Add members to task boards.
     -   Assign members to tasks during creation.
 
-### **Additional Features**
+---
 
--   Visual indicators for task statuses based on due dates:
-    -   **Red**: Overdue tasks in active categories.
-    -   **Green**: Tasks marked as done.
--   Pre-filled user information for seamless updates on the settings page.
-
-## 🛠️ **Tech Stack**
+## **Tech Stack**
 
 ### **Frontend**
 
--   **React**: UI library.
--   **React Router DOM**: For routing.
--   **Redux Toolkit**: State management.
--   **React Icons**: Icon library.
--   **React Toastify**: Notification handling.
--   **Vite**: Frontend build tool.
--   **Eslint**: Code quality and linting.
+-   **React 18** - UI library
+-   **Vite** - Build tool
+-   **Redux Toolkit** - State management
+-   **React Router DOM** - Routing
+-   **React Toastify** - Notifications
+-   **React Icons** - Icon library
 
 ### **Backend**
 
--   **Express.js**: Backend framework.
--   **Mongoose**: MongoDB object modeling.
--   **JWT**: Secure token-based authentication.
--   **Bcrypt.js**: Password encryption.
--   **Dotenv**: Environment variable management.
--   **Cors**: Cross-origin resource sharing.
+-   **Express.js** - Backend framework
+-   **Supabase** - Database (PostgreSQL) & Authentication
+-   **Dotenv** - Environment variable management
+-   **Cors** - Cross-origin resource sharing
 
 ---
 
@@ -115,9 +83,69 @@ _A task management app, where users can organize their personal and team-based t
 
 ### **Prerequisites**
 
--   Install **Node.js (18.17.1)**.
--   Install **npm** or **yarn**.
--   MongoDB database.
+-   Node.js (v18+)
+-   npm
+-   A [Supabase](https://supabase.com) project
+
+### **Supabase Setup**
+
+1. Create a new project on [Supabase](https://supabase.com).
+2. Run the following SQL in the **SQL Editor** to create the required tables:
+
+    ```sql
+    -- Profiles Table
+    CREATE TABLE public.profiles (
+        id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        board JSONB DEFAULT '[]'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    );
+
+    ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Users can view their own profile" ON public.profiles FOR SELECT USING (auth.uid() = id);
+    CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+
+    -- Tasks Table
+    CREATE TABLE public.tasks (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        title TEXT NOT NULL,
+        priority TEXT NOT NULL,
+        category TEXT DEFAULT 'to-do' NOT NULL,
+        checklist JSONB DEFAULT '[]'::jsonb NOT NULL,
+        user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+        assign TEXT,
+        due_date TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+    );
+
+    ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY "Users can view tasks" ON public.tasks FOR SELECT USING (
+        auth.uid() = user_id OR
+        assign = (SELECT email FROM public.profiles WHERE id = auth.uid())
+    );
+    CREATE POLICY "Users can create their own tasks" ON public.tasks FOR INSERT WITH CHECK (auth.uid() = user_id);
+    CREATE POLICY "Users can update their own tasks" ON public.tasks FOR UPDATE USING (auth.uid() = user_id);
+    CREATE POLICY "Users can delete their own tasks" ON public.tasks FOR DELETE USING (auth.uid() = user_id);
+
+    -- Auto-create profile on signup
+    CREATE OR REPLACE FUNCTION public.handle_new_user()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        INSERT INTO public.profiles (id, name, email)
+        VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data->>'name', 'User'), NEW.email);
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+    CREATE TRIGGER on_auth_user_created
+        AFTER INSERT ON auth.users
+        FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+    ```
+
+3. Copy your **Supabase URL**, **anon public key**, and **service role key** from Settings > API.
 
 ### **Backend Setup**
 
@@ -129,14 +157,15 @@ _A task management app, where users can organize their personal and team-based t
     ```bash
     npm install
     ```
-3. Create a `.env` file in the backend directory and add:
+3. Create a `.env` file in the backend directory:
     ```env
-    MONGODB_URI=mongodb://127.0.0.1:27017/task_management
+    SUPABASE_URL=your_supabase_url
+    SUPABASE_ANON_KEY=your_anon_public_key
+    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
     FRONTEND_URL=http://localhost:5173
     PORT=9000
-    JWT_SECRET=secret-kJKJllKKJJghLjOiUfcHGkMLgdJlLKDtrdyKLBJbRdesEkj
     ```
-4. Start the server in development mode:
+4. Start the server:
     ```bash
     npm run dev
     ```
@@ -151,16 +180,15 @@ _A task management app, where users can organize their personal and team-based t
     ```bash
     npm install
     ```
-3. Create a `.env` file in the frontend directory and add:
+3. Create a `.env` file in the frontend directory:
     ```env
     VITE_BACKEND_URL=http://localhost:9000
-    VITE_FRONTEND_URL=http://localhost:5173
     ```
 4. Start the development server:
     ```bash
     npm run dev
     ```
-5. Open the application in your browser at `http://localhost:5173`.
+5. Open the application at `http://localhost:5173`.
 
 ---
 
@@ -168,12 +196,11 @@ _A task management app, where users can organize their personal and team-based t
 
 ### **Frontend**
 
-| Script            | Description                                 |
-| ----------------- | ------------------------------------------- |
-| `npm run dev`     | Starts the development server.              |
-| `npm run build`   | Builds the production version of the app.   |
-| `npm run lint`    | Lints the codebase for errors and warnings. |
-| `npm run preview` | Previews the built application.             |
+| Script            | Description                               |
+| ----------------- | ----------------------------------------- |
+| `npm run dev`     | Starts the development server.            |
+| `npm run build`   | Builds the production version of the app. |
+| `npm run preview` | Previews the built application.           |
 
 ### **Backend**
 
@@ -184,22 +211,12 @@ _A task management app, where users can organize their personal and team-based t
 
 ---
 
-## **Live Demo**
-
-Check out the live demo of Task Management here: [Task Management](https://task-management-org.vercel.app)
-
 ## **Author**
 
-Akash Deep \
-Email: aniketsharma.ani04@gmail.com \
-LinkedIn: [https://www.linkedin.com/in/akashdeep023](https://www.linkedin.com/in/aniket-sharma-07ba6617b/)/
-
+Aniket Sharma\
+Email: aniketsharma.ani05@gmail.com\
+LinkedIn: [linkedin.com/in/aniket-sharma-07ba6617b](https://www.linkedin.com/in/aniket-sharma-07ba6617b/)
 
 ## **License**
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-Thank you for checking out my Task Management project! If you have any feedback or suggestions, I would love to hear from you.
-Feel free to contribute, report issues, or suggest improvements! 😊
